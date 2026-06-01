@@ -4,7 +4,7 @@
 
 ## 1. The Core Problem: The Data Firehose
 A Neuralink-tier N1 implant samples 1,024 channels at 20kHz with 10-bit resolution.
-- **Data Rate:** 1,024 * 20,000 * 10 = **204.8 Mbps** of raw electrical noise.
+- **Data Rate:** 1,024 × 20,000 × 10 = **204.8 Mbps** of raw electrical noise.
 - **Constraint:** Wireless transmission (Bluetooth/Custom RF) cannot handle this bandwidth without massive power consumption and thermal throttling.
 - **The Gap:** We need to transmit the *signal*, not the *noise*, without introducing latency that breaks the 0.15ms inference window of NeuroBridge.
 
