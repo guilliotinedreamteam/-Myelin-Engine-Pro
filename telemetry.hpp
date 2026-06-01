@@ -21,6 +21,14 @@ public:
     QER_Node(int port, uint64_t entanglement_seed);
     virtual ~QER_Node();
 
+    // Prevent implicit socket copying to avoid double-closes
+    QER_Node(const QER_Node&) = delete;
+    QER_Node& operator=(const QER_Node&) = delete;
+
+    // Proper move semantics
+    QER_Node(QER_Node&& other) noexcept;
+    QER_Node& operator=(QER_Node&& other) noexcept;
+
 protected:
     int m_socket;
     struct sockaddr_in m_addr;

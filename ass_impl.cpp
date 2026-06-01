@@ -1,5 +1,6 @@
 #include "ass.hpp"
 #include <numeric>
+#include <stdexcept>
 
 #if defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>
@@ -9,6 +10,12 @@ namespace myelin {
 
 ASS::ASS(int total_channels, int cluster_size)
     : m_total_channels(total_channels), m_cluster_size(cluster_size) {
+    if (m_cluster_size <= 0) {
+        throw std::invalid_argument("Cluster size must be strictly positive");
+    }
+    if ((m_total_channels % m_cluster_size) != 0) {
+        throw std::invalid_argument("Total channels must be perfectly divisible by cluster size");
+    }
 }
 
 void ASS::apply(uint16_t* frame_ptr, int samples) {
@@ -89,6 +96,10 @@ void ASS::apply(uint16_t* frame_ptr, int samples) {
 
 void ASS::reconstruct(uint16_t* frame_ptr, int samples) {
     int num_clusters = m_total_channels / m_cluster_size;
+    if (m_cluster_averages.size() != static_cast<size_t>(samples) * num_clusters) {
+        throw std::logic_error("Reconstruct called without a matching apply. Averages array size mismatch.");
+    }
+
     uint16_t* __restrict avg_ptr = m_cluster_averages.data();
 
     for (int s = 0; s < samples; ++s) {

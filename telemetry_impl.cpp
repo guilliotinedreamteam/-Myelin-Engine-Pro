@@ -4,6 +4,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <poll.h>
+#include <cerrno>
 
 namespace myelin {
 
@@ -20,7 +21,33 @@ QER_Node::QER_Node(int port, uint64_t entanglement_seed)
 QER_Node::~QER_Node() {
     if (m_socket >= 0) {
         close(m_socket);
+        m_socket = -1;
     }
+}
+
+QER_Node::QER_Node(QER_Node&& other) noexcept
+    : m_socket(other.m_socket),
+      m_addr(other.m_addr),
+      m_shared_seed(other.m_shared_seed),
+      m_expected_frame_seq(other.m_expected_frame_seq),
+      m_state_generator(std::move(other.m_state_generator)) {
+    other.m_socket = -1;
+}
+
+QER_Node& QER_Node::operator=(QER_Node&& other) noexcept {
+    if (this != &other) {
+        if (m_socket >= 0) {
+            close(m_socket);
+        }
+        m_socket = other.m_socket;
+        m_addr = other.m_addr;
+        m_shared_seed = other.m_shared_seed;
+        m_expected_frame_seq = other.m_expected_frame_seq;
+        m_state_generator = std::move(other.m_state_generator);
+
+        other.m_socket = -1;
+    }
+    return *this;
 }
 
 void QER_Node::evolve_state() {
@@ -47,10 +74,13 @@ QER_Transmitter::QER_Transmitter(const std::string& target_ip, int target_port, 
 int QER_Transmitter::transmit_entropy(const std::vector<uint8_t>& pure_entropy) {
     // ZERO HEADER TRANSMISSION. We send ONLY the raw, compressed bits.
     // The receiver already knows what frame this is via state entanglement.
-    int bytes_sent = sendto(m_socket, pure_entropy.data(), pure_entropy.size(), 0,
+    ssize_t bytes_sent = sendto(m_socket, pure_entropy.data(), pure_entropy.size(), 0,
                             (struct sockaddr*)&m_addr, sizeof(m_addr));
+    if (bytes_sent == -1) {
+        throw std::runtime_error(std::string("sendto failed: ") + strerror(errno));
+    }
     evolve_state();
-    return bytes_sent;
+    return static_cast<int>(bytes_sent);
 }
 
 // --- QER_Receiver ---
