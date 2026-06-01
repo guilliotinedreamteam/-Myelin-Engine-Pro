@@ -1,4 +1,4 @@
-# The Myelin Engine ⚡️
+ The Myelin Engine 
 **A Sub-Millisecond Neural Telemetry Protocol**
 
 > *Engineered by Donavan Pyle, II*
@@ -36,4 +36,4 @@ The engine achieves a **38% reduction in raw bandwidth** with an encoding latenc
 - `/specs`: Detailed architectural drafts, including the theoretical Quantum Entanglement Routing (QER) model.
 
 ---
-*"We do not just read the brain; we sync with it at the speed of thought."* — Donavan Pyle, II
+— Donavan Pyle, II
