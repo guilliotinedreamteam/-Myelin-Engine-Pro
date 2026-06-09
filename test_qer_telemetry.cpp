@@ -25,6 +25,20 @@ void run_transmitter() {
     }
 }
 
+
+void test_invalid_ip() {
+    bool exception_thrown = false;
+    try {
+        QER_Transmitter transmitter("invalid_ip", 55555, 0x1337BEEF);
+    } catch (const std::runtime_error& e) {
+        if (std::string(e.what()) == "Invalid QER target IP address") {
+            exception_thrown = true;
+        }
+    }
+    assert(exception_thrown && "Expected std::runtime_error for invalid IP address");
+    std::cout << "[Test] Invalid IP address test passed." << std::endl;
+}
+
 int main() {
     std::cout << "--- QER Telemetry Protocol Test ---" << std::endl;
     std::thread rx_thread(run_receiver);
@@ -33,6 +47,8 @@ int main() {
     rx_thread.join();
     tx_thread.join();
     
+    test_invalid_ip();
+
     std::cout << "QER Core Test Passed!" << std::endl;
     return 0;
 }
