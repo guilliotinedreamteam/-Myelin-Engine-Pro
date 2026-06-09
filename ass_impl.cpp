@@ -12,6 +12,7 @@ ASS::ASS(int total_channels, int cluster_size)
 }
 
 void ASS::apply(uint16_t* frame_ptr, int samples) {
+    if (m_cluster_size <= 0) return;
     int num_clusters = m_total_channels / m_cluster_size;
     m_cluster_averages.resize(samples * num_clusters, 0);
 
@@ -88,6 +89,7 @@ void ASS::apply(uint16_t* frame_ptr, int samples) {
 }
 
 void ASS::reconstruct(uint16_t* frame_ptr, int samples) {
+    if (m_cluster_size <= 0) return;
     int num_clusters = m_total_channels / m_cluster_size;
     uint16_t* __restrict avg_ptr = m_cluster_averages.data();
     

@@ -1,4 +1,4 @@
-#include "bsde.cpp"
+#include "bsde_impl.cpp"
 #include <cassert>
 #include <iostream>
 
@@ -13,8 +13,8 @@ int main() {
         frame[i] = (i % 2 == 0) ? 500 : 502; // Small deltas
     }
 
-    std::vector<uint8_t> bits = encoder.encode(frame, samples);
-    std::vector<uint16_t> decoded = decoder.decode(bits, samples);
+    std::vector<uint8_t> bits = encoder.encode(frame.data(), samples);
+    std::vector<uint16_t> decoded = decoder.decode(bits.data(), bits.size(), samples);
 
     for (int i = 0; i < frame.size(); ++i) {
         if (frame[i] != decoded[i]) {
