@@ -1,5 +1,10 @@
+import numpy as np
+cimport numpy as cnp
 from libc.stdint cimport uint8_t, uint16_t
+from libc.string cimport memcpy
 from libcpp.vector cimport vector
+
+cnp.import_array()
 
 cdef extern from "bsde.hpp" namespace "myelin":
     cdef cppclass BSDE:
@@ -27,7 +32,11 @@ cdef class PyBSDE:
     def decode(self, uint8_t[:] bits, int samples):
         cdef int bits_len = bits.shape[0]
         cdef vector[uint16_t] result = self.thisptr.decode(&bits[0], bits_len, samples)
-        return list(result)
+        cdef int result_size = result.size()
+        cdef cnp.ndarray[uint16_t, ndim=1] out_array = np.empty(result_size, dtype=np.uint16)
+        if result_size > 0:
+            memcpy(&out_array[0], result.data(), result_size * sizeof(uint16_t))
+        return out_array
 
 cdef class PyASS:
     cdef ASS* thisptr
