@@ -44,7 +44,7 @@ public:
 
 class QER_Receiver : public QER_Node {
 public:
-    QER_Receiver(int listen_port, uint64_t entanglement_seed);
+    QER_Receiver(int listen_port, uint64_t entanglement_seed, const std::string& bind_ip = "127.0.0.1");
     
     // Receives entropy and verifies state coherence.
     // Returns true if decoherence (packet loss) is detected.
