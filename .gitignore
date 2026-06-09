@@ -1,0 +1,6 @@
+test_ass_core
+test_bsde_core
+test_qer_telemetry
+*.o
+*.pyc
+*.so
