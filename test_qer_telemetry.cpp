@@ -25,6 +25,25 @@ void run_transmitter() {
     }
 }
 
+void test_receiver_timeout() {
+    try {
+        QER_Receiver receiver(0, 0x1337BEEF); // Bind to port 0
+        std::vector<uint8_t> entropy_out;
+        bool decoherence_detected = false;
+
+        // Timeout is 10ms
+        bool result = receiver.receive_entropy(entropy_out, decoherence_detected, 10);
+
+        assert(!result && "receive_entropy should return false on timeout");
+        assert(decoherence_detected && "decoherence_detected should be true on timeout");
+
+        std::cout << "[Test Timeout] Passed successfully." << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[Test Timeout Error] " << e.what() << std::endl;
+        assert(false);
+    }
+}
+
 int main() {
     std::cout << "--- QER Telemetry Protocol Test ---" << std::endl;
     std::thread rx_thread(run_receiver);
@@ -33,6 +52,8 @@ int main() {
     rx_thread.join();
     tx_thread.join();
     
+    test_receiver_timeout();
+
     std::cout << "QER Core Test Passed!" << std::endl;
     return 0;
 }
