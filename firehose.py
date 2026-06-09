@@ -35,12 +35,14 @@ class NeuralFirehose:
         spike_prob = self.spike_rate / self.sampling_rate
         spike_mask = np.random.random((self.channels, num_samples)) < spike_prob
         
-        # Add simple biphasic spike waveforms
-        for ch, sample_idx in zip(*np.where(spike_mask)):
-            # Ensure we don't overflow the frame end
-            if sample_idx < num_samples - 5:
-                data[ch, sample_idx:sample_idx+3] += self.noise_floor * 2  # Depolarization
-                data[ch, sample_idx+3:sample_idx+5] -= self.noise_floor * 1 # Hyperpolarization
+        # Add simple biphasic spike waveforms using vectorized indexing
+        ch, sample_idx = np.where(spike_mask[:, :-5])
+        if len(ch) > 0:
+            data[ch, sample_idx] += self.noise_floor * 2
+            data[ch, sample_idx+1] += self.noise_floor * 2
+            data[ch, sample_idx+2] += self.noise_floor * 2
+            data[ch, sample_idx+3] -= self.noise_floor * 1
+            data[ch, sample_idx+4] -= self.noise_floor * 1
         
         # 3. Clip and Quantize to Bit Depth
         return np.clip(data, 0, self.max_val).astype(np.uint16)
