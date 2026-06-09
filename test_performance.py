@@ -5,14 +5,9 @@ import time
 
 # Ensure we can import the built extension
 sys.path.append(os.path.join(os.getcwd(), "src/telemetry"))
-try:
-    from myelin_bsde import PyBSDE, PyASS
-except ImportError:
-    # Look for it in the telemetry folder directly
-    sys.path.append("/private/var/root/Myelin-Engine-Pro/src/telemetry")
-    from myelin_bsde import PyBSDE, PyASS
+from myelin_bsde import PyBSDE, PyASS
 
-from src.simulator.firehose import NeuralFirehose
+from firehose import NeuralFirehose
 
 def test_myelin_compression():
     channels = 1024
