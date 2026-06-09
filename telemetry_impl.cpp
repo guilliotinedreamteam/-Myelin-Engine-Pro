@@ -64,7 +64,7 @@ QER_Receiver::QER_Receiver(int listen_port, uint64_t entanglement_seed)
 
     memset(&m_addr, 0, sizeof(m_addr));
     m_addr.sin_family = AF_INET;
-    m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    m_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     m_addr.sin_port = htons(listen_port);
     
     if (bind(m_socket, (struct sockaddr*)&m_addr, sizeof(m_addr)) < 0) {
