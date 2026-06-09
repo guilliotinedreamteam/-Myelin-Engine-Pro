@@ -18,7 +18,7 @@ int main() {
 
     std::vector<uint16_t> frame = original_frame;
 
-    squelch.apply(frame, samples);
+    squelch.apply(frame.data(), samples);
 
     // Verify centering around 512
     // Sample 0, Cluster 0: orig 500, avg 500 -> 500 - 500 + 512 = 512
@@ -32,7 +32,7 @@ int main() {
         return 1;
     }
 
-    squelch.reconstruct(frame, samples);
+    squelch.reconstruct(frame.data(), samples);
 
     // Verify reconstruction
     for (int i = 0; i < frame.size(); ++i) {
