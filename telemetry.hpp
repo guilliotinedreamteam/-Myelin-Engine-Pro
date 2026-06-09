@@ -9,6 +9,74 @@
 
 namespace myelin {
 
+
+
+struct ChaCha20StateGenerator {
+    uint32_t state[16];
+    uint64_t buffer[8];
+    int buffer_idx;
+
+    explicit ChaCha20StateGenerator(uint64_t seed) {
+        state[0] = 0x61707865;
+        state[1] = 0x3320646e;
+        state[2] = 0x79622d32;
+        state[3] = 0x6b206574;
+
+        state[4] = static_cast<uint32_t>(seed & 0xFFFFFFFF);
+        state[5] = static_cast<uint32_t>(seed >> 32);
+        for (int i = 6; i < 16; ++i) {
+            state[i] = 0;
+        }
+        buffer_idx = 8; // Force generation on first call
+    }
+
+    typedef uint64_t result_type;
+    static constexpr result_type min() { return 0; }
+    static constexpr result_type max() { return UINT64_MAX; }
+
+    uint64_t operator()() {
+        if (buffer_idx >= 8) {
+            generate_block();
+            buffer_idx = 0;
+        }
+        return buffer[buffer_idx++];
+    }
+
+private:
+    void generate_block() {
+        state[12]++;
+        if (state[12] == 0) {
+            state[13]++;
+        }
+
+        uint32_t x[16];
+        for (int i = 0; i < 16; ++i) x[i] = state[i];
+
+        #define ROTL(a,b) (((a) << (b)) | ((a) >> (32 - (b))))
+        #define QR(a, b, c, d) \
+            x[a] += x[b]; x[d] ^= x[a]; x[d] = ROTL(x[d], 16); \
+            x[c] += x[d]; x[b] ^= x[c]; x[b] = ROTL(x[b], 12); \
+            x[a] += x[b]; x[d] ^= x[a]; x[d] = ROTL(x[d], 8); \
+            x[c] += x[d]; x[b] ^= x[c]; x[b] = ROTL(x[b], 7);
+
+        for (int i = 0; i < 10; ++i) {
+            QR(0, 4, 8, 12); QR(1, 5, 9, 13); QR(2, 6, 10, 14); QR(3, 7, 11, 15);
+            QR(0, 5, 10, 15); QR(1, 6, 11, 12); QR(2, 7, 8, 13); QR(3, 4, 9, 14);
+        }
+        #undef QR
+        #undef ROTL
+
+        for (int i = 0; i < 16; ++i) {
+            uint32_t out = state[i] + x[i];
+            if (i % 2 == 0) {
+                buffer[i/2] = static_cast<uint64_t>(out);
+            } else {
+                buffer[i/2] |= (static_cast<uint64_t>(out) << 32);
+            }
+        }
+    }
+};
+
 /**
  * Quantum Entanglement Routing (QER) Simulator
  * 
@@ -28,7 +96,7 @@ protected:
     // The "Entangled" State Machine
     uint64_t m_shared_seed;
     uint32_t m_expected_frame_seq;
-    std::mt19937_64 m_state_generator; // Simulating the quantum state evolution
+    ChaCha20StateGenerator m_state_generator; // Simulating the quantum state evolution
     
     // Advances the state machine synchronously
     void evolve_state();
