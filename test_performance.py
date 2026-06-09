@@ -12,7 +12,7 @@ except ImportError:
     sys.path.append("/private/var/root/Myelin-Engine-Pro/src/telemetry")
     from myelin_bsde import PyBSDE, PyASS
 
-from src.simulator.firehose import NeuralFirehose
+from firehose import NeuralFirehose
 
 def test_myelin_compression():
     channels = 1024
