@@ -55,7 +55,7 @@ int QER_Transmitter::transmit_entropy(const std::vector<uint8_t>& pure_entropy) 
 
 // --- QER_Receiver ---
 
-QER_Receiver::QER_Receiver(int listen_port, uint64_t entanglement_seed) 
+QER_Receiver::QER_Receiver(int listen_port, uint64_t entanglement_seed, const std::string& bind_ip)
     : QER_Node(listen_port, entanglement_seed) {
     
     int opt = 1;
@@ -64,7 +64,9 @@ QER_Receiver::QER_Receiver(int listen_port, uint64_t entanglement_seed)
 
     memset(&m_addr, 0, sizeof(m_addr));
     m_addr.sin_family = AF_INET;
-    m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (inet_pton(AF_INET, bind_ip.c_str(), &m_addr.sin_addr) <= 0) {
+        throw std::runtime_error("Invalid QER bind IP address");
+    }
     m_addr.sin_port = htons(listen_port);
     
     if (bind(m_socket, (struct sockaddr*)&m_addr, sizeof(m_addr)) < 0) {
