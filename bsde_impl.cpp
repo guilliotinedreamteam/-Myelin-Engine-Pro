@@ -28,8 +28,20 @@ std::vector<uint8_t> BSDE::encode(const uint16_t* frame, int samples) {
     };
 
     auto push_bits = [&](uint32_t value, int count) {
-        for (int i = count - 1; i >= 0; --i) {
-            push_bit((value >> i) & 1);
+        while (count > 0) {
+            int bits_available = bit_pos + 1;
+            int bits_to_write = std::min(count, bits_available);
+
+            uint32_t extracted_bits = (value >> (count - bits_to_write)) & ((1 << bits_to_write) - 1);
+            current_byte |= (extracted_bits << (bits_available - bits_to_write));
+
+            bit_pos -= bits_to_write;
+            if (bit_pos < 0) {
+                bitstream.push_back(current_byte);
+                current_byte = 0;
+                bit_pos = 7;
+            }
+            count -= bits_to_write;
         }
     };
 
@@ -79,8 +91,23 @@ std::vector<uint16_t> BSDE::decode(const uint8_t* bits, int bits_len, int sample
 
     auto get_bits = [&](int count) -> uint32_t {
         uint32_t val = 0;
-        for (int i = 0; i < count; ++i) {
-            val = (val << 1) | (get_bit() ? 1 : 0);
+        while (count > 0) {
+            if (byte_idx >= bits_len) return val << count;
+
+            int bits_available = 8 - bit_idx;
+            int bits_to_read = std::min(count, bits_available);
+
+            uint32_t extracted_bits = (bits[byte_idx] >> (bits_available - bits_to_read)) & ((1 << bits_to_read) - 1);
+
+            val = (val << bits_to_read) | extracted_bits;
+
+            bit_idx += bits_to_read;
+            if (bit_idx >= 8) {
+                bit_idx = 0;
+                byte_idx++;
+            }
+
+            count -= bits_to_read;
         }
         return val;
     };
